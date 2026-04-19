@@ -8,6 +8,20 @@ const cartSidebar = document.getElementById('cartSidebar');
 const cartIcon = document.querySelector('.cart-icon');
 const closeCart = document.getElementById('closeCart');
 
+// Fake data for when backend is offline
+const FAKE_PRODUCTS = [
+    { id: 1, name: "Nike Air Max", price: 129.99, category: "Running", imgUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" },
+    { id: 2, name: "Adidas Ultraboost", price: 159.99, category: "Running", imgUrl: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400" },
+    { id: 3, name: "Puma Suede Classic", price: 69.99, category: "Casual", imgUrl: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=400" },
+    { id: 4, name: "New Balance 574", price: 89.99, category: "Lifestyle", imgUrl: "https://images.unsplash.com/photo-1570993492881-25240ce854f4?w=400" },
+    { id: 5, name: "Vans Old Skool", price: 59.99, category: "Skate", imgUrl: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400" },
+    { id: 6, name: "Converse Chuck Taylor", price: 54.99, category: "Casual", imgUrl: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400" },
+    { id: 7, name: "Reebok Classic", price: 74.99, category: "Lifestyle", imgUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" },
+    { id: 8, name: "Under Armour Curry", price: 119.99, category: "Basketball", imgUrl: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400" }
+];
+
+let isBackendAvailable = true;
+
 // ==========================================
 // 2. INITIALIZATION
 // ==========================================
@@ -52,19 +66,32 @@ async function getProds(category = null) {
             url += `?category=${encodeURIComponent(category)}`;
         }
 
-        const res = await fetch(url);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
         if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
+        isBackendAvailable = true;
         showProds(data, category);
     } catch (err) {
         console.error("Error fetching products:", err);
-        if (prodGrid) {
-            prodGrid.innerHTML = `<p style="grid-column: 1/-1; color: #ff4757; text-align: center;">Unable to load products. Ensure the backend server is running.</p>`;
+        isBackendAvailable = false;
+        // Use fake data when backend is offline
+        let fakeData = [...FAKE_PRODUCTS];
+        if (category) {
+            fakeData = fakeData.filter(p => p.category.toLowerCase() === category.toLowerCase());
+        }
+        showProds(fakeData, category, true);
+        if (prodGrid && fakeData.length === 0) {
+            prodGrid.innerHTML = `<p style="grid-column: 1/-1; color: #ff4757; text-align: center;">Unable to load products. Using demo data. Ensure the backend server is running for full functionality.</p>`;
         }
     }
 }
 
-function showProds(prods, category) {
+function showProds(prods, category, isFakeData = false) {
     if (!prodGrid) return;
     prodGrid.innerHTML = '';
     
@@ -85,7 +112,7 @@ function showProds(prods, category) {
         
         card.innerHTML = `
             <div class="product-image">
-                <img src="${p.imgUrl}" alt="${p.name}">
+                <img src="${p.imgUrl}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
             </div>
             <div class="product-info">
                 <h3>${p.name}</h3>
@@ -115,6 +142,23 @@ function showProds(prods, category) {
 
         prodGrid.appendChild(card);
     });
+
+    // Add warning banner if using fake data
+    if (isFakeData && !document.querySelector('.demo-warning')) {
+        const warningBanner = document.createElement('div');
+        warningBanner.className = 'demo-warning';
+        warningBanner.style.cssText = `
+            background: #ff9800;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            grid-column: 1/-1;
+        `;
+        warningBanner.innerHTML = '⚠️ Demo Mode: Using sample data. Backend server not connected.';
+        prodGrid.parentElement.insertBefore(warningBanner, prodGrid);
+    }
 }
 
 function setupCategoryFilters() {
@@ -136,8 +180,8 @@ async function addToCart(product) {
     cart.push(product);
     
     const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
-        // Sync to cloud if logged in
+    if (user && isBackendAvailable) {
+        // Sync to cloud if logged in and backend available
         user.cart = cart;
         localStorage.setItem('user', JSON.stringify(user));
         try {
@@ -148,10 +192,16 @@ async function addToCart(product) {
             });
         } catch (err) {
             console.error("Failed to sync cart:", err);
+            // Store sync pending
+            localStorage.setItem('pendingSync', JSON.stringify({ userId: user.userId, cart: cart }));
         }
     } else {
-        // Save locally if guest
+        // Save locally if guest or backend unavailable
         localStorage.setItem('localCart', JSON.stringify(cart));
+        if (user && !isBackendAvailable) {
+            // Store for later sync
+            localStorage.setItem('pendingSync', JSON.stringify({ userId: user.userId, cart: cart }));
+        }
     }
     
     updateUI();
@@ -167,7 +217,7 @@ async function removeFromCart(index) {
     cart.splice(index, 1);
     
     const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
+    if (user && isBackendAvailable) {
         user.cart = cart;
         localStorage.setItem('user', JSON.stringify(user));
         try {
@@ -178,9 +228,13 @@ async function removeFromCart(index) {
             });
         } catch (err) {
             console.error("Failed to sync cart:", err);
+            localStorage.setItem('pendingSync', JSON.stringify({ userId: user.userId, cart: cart }));
         }
     } else {
         localStorage.setItem('localCart', JSON.stringify(cart));
+        if (user && !isBackendAvailable) {
+            localStorage.setItem('pendingSync', JSON.stringify({ userId: user.userId, cart: cart }));
+        }
     }
     
     updateUI();
@@ -209,7 +263,7 @@ function updateUI() {
         total += item.price;
         return `
             <div class="cart-item">
-                <img src="${item.imgUrl}" alt="${item.name}">
+                <img src="${item.imgUrl}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/50x50?text=No+Image'">
                 <div style="flex-grow: 1; padding: 0 15px;">
                     <h4 style="font-size: 0.95rem; margin-bottom: 5px;">${item.name}</h4>
                     <p style="color: #777; font-size: 0.9rem;">$${item.price}</p>
@@ -223,6 +277,24 @@ function updateUI() {
 
     if (totalSpan) {
         totalSpan.textContent = total.toFixed(2);
+    }
+}
+
+// Sync pending cart operations when backend becomes available
+async function syncPendingOperations() {
+    const pendingSync = localStorage.getItem('pendingSync');
+    if (pendingSync && isBackendAvailable) {
+        try {
+            const syncData = JSON.parse(pendingSync);
+            await fetch('http://localhost:4000/api/cart/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(syncData)
+            });
+            localStorage.removeItem('pendingSync');
+        } catch (err) {
+            console.error("Failed to sync pending operations:", err);
+        }
     }
 }
 
@@ -248,8 +320,15 @@ async function refreshSidebarData() {
         return;
     }
 
+    if (!isBackendAvailable) {
+        if(historyContainer) historyContainer.innerHTML = '<p class="empty-msg">Demo Mode: Connect to backend to view order history.</p>';
+        updateUI();
+        return;
+    }
+
     try {
         const res = await fetch(`http://localhost:4000/api/user/${user.userId}`);
+        if (!res.ok) throw new Error('Failed to fetch user data');
         const fullUserData = await res.json();
 
         cart = fullUserData.cart || [];
@@ -274,6 +353,9 @@ async function refreshSidebarData() {
         }
     } catch (err) {
         console.error("Error fetching user data:", err);
+        if (historyContainer) {
+            historyContainer.innerHTML = '<p class="empty-msg">Unable to load order history. Using demo mode.</p>';
+        }
     }
 }
 
@@ -288,6 +370,30 @@ async function handleCheckout() {
 
     if (cart.length === 0) {
         alert("Your cart is empty.");
+        return;
+    }
+
+    if (!isBackendAvailable) {
+        // Simulate successful checkout in demo mode
+        const total = cart.reduce((sum, item) => sum + item.price, 0);
+        const fakeOrder = {
+            id: Date.now(),
+            date: new Date().toISOString(),
+            total: total,
+            items: [...cart]
+        };
+        
+        // Store order in localStorage for demo
+        const demoOrders = JSON.parse(localStorage.getItem('demoOrders')) || [];
+        demoOrders.push(fakeOrder);
+        localStorage.setItem('demoOrders', JSON.stringify(demoOrders));
+        
+        alert("Demo Mode: Payment Simulated! Order saved locally.");
+        cart = [];
+        user.cart = [];
+        localStorage.setItem('user', JSON.stringify(user));
+        updateUI();
+        await refreshSidebarData();
         return;
     }
 
@@ -310,11 +416,29 @@ async function handleCheckout() {
         }
     } catch (err) {
         console.error("Checkout error:", err);
+        alert("Unable to process checkout. Using demo mode.");
+        // Fallback to demo checkout
+        const total = cart.reduce((sum, item) => sum + item.price, 0);
+        const fakeOrder = {
+            id: Date.now(),
+            date: new Date().toISOString(),
+            total: total,
+            items: [...cart]
+        };
+        const demoOrders = JSON.parse(localStorage.getItem('demoOrders')) || [];
+        demoOrders.push(fakeOrder);
+        localStorage.setItem('demoOrders', JSON.stringify(demoOrders));
+        cart = [];
+        user.cart = [];
+        localStorage.setItem('user', JSON.stringify(user));
+        updateUI();
+        await refreshSidebarData();
     }
 }
 
 function logout() {
     localStorage.removeItem('user');
+    localStorage.removeItem('localCart');
     window.location.reload(); 
 }
 
@@ -375,9 +499,35 @@ if (newsletterForm) {
         const email = emailInput.value;
         const btn = newsletterForm.querySelector('.newsletter-button');
 
+        if (!email || !email.includes('@')) {
+            formMessage.className = 'form-message error';
+            formMessage.textContent = "Please enter a valid email address.";
+            setTimeout(() => formMessage.className = 'form-message', 4000);
+            return;
+        }
+
         try {
             btn.disabled = true;
             btn.textContent = "Sending...";
+
+            if (!isBackendAvailable) {
+                // Simulate subscription in demo mode
+                setTimeout(() => {
+                    formMessage.className = 'form-message success';
+                    formMessage.textContent = "Demo Mode: Subscription recorded!";
+                    emailInput.value = '';
+                    btn.disabled = false;
+                    btn.textContent = "Subscribe";
+                    
+                    // Save to localStorage
+                    const subscriptions = JSON.parse(localStorage.getItem('demoSubscriptions')) || [];
+                    subscriptions.push({ email, date: new Date().toISOString() });
+                    localStorage.setItem('demoSubscriptions', JSON.stringify(subscriptions));
+                    
+                    setTimeout(() => formMessage.className = 'form-message', 4000);
+                }, 500);
+                return;
+            }
 
             const res = await fetch('http://localhost:4000/api/subscribe', {
                 method: 'POST',
@@ -397,8 +547,14 @@ if (newsletterForm) {
                 formMessage.classList.add('error');
             }
         } catch (err) {
-            formMessage.textContent = "Could not connect to server.";
+            console.error("Subscription error:", err);
+            formMessage.textContent = "Could not connect to server. Using demo mode.";
             formMessage.classList.add('error');
+            
+            // Save subscription locally in demo mode
+            const subscriptions = JSON.parse(localStorage.getItem('demoSubscriptions')) || [];
+            subscriptions.push({ email, date: new Date().toISOString() });
+            localStorage.setItem('demoSubscriptions', JSON.stringify(subscriptions));
         } finally {
             btn.disabled = false;
             btn.textContent = "Subscribe";
@@ -406,3 +562,22 @@ if (newsletterForm) {
         }
     });
 }
+
+// Periodic backend availability check
+setInterval(async () => {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        await fetch('http://localhost:4000/api/products', { method: 'HEAD', signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!isBackendAvailable) {
+            isBackendAvailable = true;
+            await syncPendingOperations();
+            const warning = document.querySelector('.demo-warning');
+            if (warning) warning.remove();
+            getProds(); // Refresh products from backend
+        }
+    } catch (err) {
+        isBackendAvailable = false;
+    }
+}, 30000); // Check every 30 seconds

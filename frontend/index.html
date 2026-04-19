@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stride | Premium Footwear</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="#" class="logo"><i class="fas fa-shoe-prints"></i> Stride</a>
+                <ul class="nav-links">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#featured">Products</a></li>
+                    <li><a href="#categories">Categories</a></li>
+                    <li><a href="#testimonials">Reviews</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="auth.html"><i class="fas fa-user"></i> Login</a></li>
+                </ul>
+                <div class="cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="hamburger">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text animate__animated animate__fadeInLeft">
+                    <h1>Step Into <span>Comfort</span> And Style</h1>
+                    <p>Discover our premium collection of footwear designed for every occasion. Experience unparalleled comfort without compromising on style.</p>
+                    <a href="#featured" class="cta-button">Shop Now</a>
+                </div>
+                <div class="hero-image animate__animated animate__fadeInRight">
+                    <div class="shoe-display"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="featured" id="featured">
+        <div class="container">
+            <div class="section-title">
+                <h2 class="animate__animated animate__fadeInUp">Featured Products</h2>
+            </div>
+            <div class="products-grid" id="prodGrid">
+                </div>
+        </div>
+    </section>
+
+    <section class="categories" id="categories">
+        <div class="container">
+            <div class="section-title">
+                <h2 class="animate__animated animate__fadeInUp">Shop By Category</h2>
+            </div>
+            <div class="categories-grid">
+                <div class="category-card animate__animated animate__fadeIn" data-delay="0.1s">
+                    <img src="https://images.unsplash.com/photo-1460353581641-37baddab0fa2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1171&q=80" alt="Running Shoes" class="category-image">
+                    <div class="category-overlay">
+                        <h3>Running</h3>
+                        <a href="#">Shop Now <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="category-card animate__animated animate__fadeIn" data-delay="0.2s">
+                    <img src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=998&q=80" alt="Casual Shoes" class="category-image">
+                    <div class="category-overlay">
+                        <h3>Casual</h3>
+                        <a href="#">Shop Now <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="category-card animate__animated animate__fadeIn" data-delay="0.3s">
+                    <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Basketball Shoes" class="category-image">
+                    <div class="category-overlay">
+                        <h3>Basketball</h3>
+                        <a href="#">Shop Now <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="category-card animate__animated animate__fadeIn" data-delay="0.4s">
+                    <img src="https://images.unsplash.com/photo-1520004434532-668416a08753?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hiking Boots" class="category-image">
+                    <div class="category-overlay">
+                        <h3>Hiking</h3>
+                        <a href="#">Shop Now <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials" id="testimonials">
+        <div class="container">
+            <div class="section-title">
+                <h2 class="animate__animated animate__fadeInUp">What Our Customers Say</h2>
+            </div>
+            <div class="testimonials-container">
+                <div class="testimonial-slider">
+                    <div class="testimonial-slide active">
+                        <img src="https://randomuser.me/api/portraits/women/43.jpg" alt="Customer" class="testimonial-avatar">
+                        <p class="testimonial-text">"I've never worn more comfortable shoes in my life! The Velocity Runners have completely changed my running experience. I can't recommend them enough!"</p>
+                        <h4 class="testimonial-author">Sarah Johnson</h4>
+                        <p class="testimonial-role">Marathon Runner</p>
+                    </div>
+                    <div class="testimonial-slide">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Customer" class="testimonial-avatar">
+                        <p class="testimonial-text">"The Urban Walkers are my go-to shoes for everyday wear. They're stylish enough for the office but comfortable enough for all-day wear. Perfect balance!"</p>
+                        <h4 class="testimonial-author">Michael Chen</h4>
+                        <p class="testimonial-role">Graphic Designer</p>
+                    </div>
+                    <div class="testimonial-slide">
+                        <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Customer" class="testimonial-avatar">
+                        <p class="testimonial-text">"As a serious hiker, I put my boots through tough conditions. The Trail Masters have held up beautifully through multiple seasons. Worth every penny!"</p>
+                        <h4 class="testimonial-author">Emily Rodriguez</h4>
+                        <p class="testimonial-role">Outdoor Guide</p>
+                    </div>
+                </div>
+                <div class="slider-controls">
+                    <div class="slider-dot active" data-slide="0"></div>
+                    <div class="slider-dot" data-slide="1"></div>
+                    <div class="slider-dot" data-slide="2"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="newsletter" id="contact">
+        <div class="container">
+            <h2 class="animate__animated animate__fadeInUp">Join Our Newsletter</h2>
+            <p class="animate__animated animate__fadeInUp">Subscribe to get exclusive offers, new product announcements, and style inspiration delivered to your inbox.</p>
+            <form class="newsletter-form animate__animated animate__fadeInUp">
+                <input type="email" placeholder="Your email address" class="newsletter-input" required>
+                <button type="submit" class="newsletter-button">Subscribe</button>
+            </form>
+            <div id="formMessage" class="form-message"></div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>Stride</h3>
+                    <p>Premium footwear for every step of your journey. Quality, comfort, and style you can count on.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-pinterest"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Shop</h3>
+                    <ul>
+                        <li><a href="#">Men's Shoes</a></li>
+                        <li><a href="#">Women's Shoes</a></li>
+                        <li><a href="#">Kids' Shoes</a></li>
+                        <li><a href="#">New Arrivals</a></li>
+                        <li><a href="#">Best Sellers</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Help</h3>
+                    <ul>
+                        <li><a href="#">Customer Service</a></li>
+                        <li><a href="#">Track Order</a></li>
+                        <li><a href="#">Returns & Exchanges</a></li>
+                        <li><a href="#">Shipping Info</a></li>
+                        <li><a href="#">Size Guide</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Shoe Street, Footwear City</li>
+                        <li><i class="fas fa-phone"></i> (123) 456-7890</li>
+                        <li><i class="fas fa-envelope"></i> info@stride.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Stride Footwear. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <a href="#" class="back-to-top"><i class="fas fa-arrow-up"></i></a>
+
+    <div id="cartSidebar" class="cart-sidebar">
+        <div class="cart-header">
+            <h2>Your Account</h2>
+            <button id="closeCart"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="cart-scroll-area">
+            <div class="sidebar-section">
+                <h3>Current Cart</h3>
+                <div id="cartItemsContainer"></div>
+                <div class="cart-footer">
+                    <div class="total-row">
+                        <span>Total:</span>
+                        <span>$<span id="cartTotal">0.00</span></span>
+                    </div>
+                    <button class="checkout-btn" onclick="handleCheckout()">Proceed to Pay</button>
+                </div>
+            </div>
+
+            <hr class="sidebar-divider">
+
+            <div class="sidebar-section">
+                <h3>Past Purchases</h3>
+                <div id="orderHistoryContainer">
+                    <p class="empty-msg">Log in to view history.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

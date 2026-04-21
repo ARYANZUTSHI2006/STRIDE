@@ -902,6 +902,9 @@
     </div>
 
     <script>
+        // BACKEND URL - CHANGE THIS TO YOUR RENDER URL
+        const BACKEND_URL = 'https://stride-1-ait1.onrender.com';
+        
         // Authentication state toggling (Login / Sign Up)
         let isLogin = true;
 
@@ -981,7 +984,8 @@
             clearMessage();
 
             try {
-                const res = await fetch(`https://stride-1-ait1.onrender.com/${endpoint}`, {
+                // FIXED: Using deployed backend URL instead of localhost
+                const res = await fetch(`${BACKEND_URL}${endpoint}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -1022,7 +1026,7 @@
                 }
             } catch (err) {
                 console.error("Auth error:", err);
-                displayMessage("Network error: Cannot connect to server. Please make sure the backend is running on port 4000.", "error");
+                displayMessage(`Network error: Cannot connect to server. Please make sure the backend is running at ${BACKEND_URL}`, "error");
             } finally {
                 // Re-enable button (if not redirected immediately)
                 if (authBtn.disabled) {

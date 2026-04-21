@@ -8,6 +8,9 @@ const cartSidebar = document.getElementById('cartSidebar');
 const cartIcon = document.querySelector('.cart-icon');
 const closeCart = document.getElementById('closeCart');
 
+// BACKEND URL - Make it easy to change
+const BACKEND_URL = 'https://stride-1-ait1.onrender.com';
+
 // Fake data for when backend is offline
 const FAKE_PRODUCTS = [
     { id: 1, name: "Nike Air Max", price: 129.99, category: "Running", imgUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" },
@@ -38,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginLink.parentElement.innerHTML = `
                     <div class="user-menu" style="margin-left: 2rem;">
                         <a href="#" style="cursor:default; color: var(--primary);"><i class="fas fa-user-circle"></i> ${user.email.split('@')[0]}</a>
-                        <button onclick="logout()" class="logout-btn">Logout</button>
+                        <button onclick="logout()" class="logout-btn" style="margin-left: 10px; padding: 5px 10px; background: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer;">Logout</button>
                     </div>
                 `;
             }
@@ -61,13 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 async function getProds(category = null) {
     try {
-        let url = 'https://stride-1-ait1.onrender.com/api/products';
+        let url = `${BACKEND_URL}/api/products`;
         if (category) {
             url += `?category=${encodeURIComponent(category)}`;
         }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
         
         const res = await fetch(url, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -76,6 +79,11 @@ async function getProds(category = null) {
         const data = await res.json();
         isBackendAvailable = true;
         showProds(data, category);
+        
+        // Remove warning if it exists
+        const warning = document.querySelector('.demo-warning');
+        if (warning) warning.remove();
+        
     } catch (err) {
         console.error("Error fetching products:", err);
         isBackendAvailable = false;
@@ -155,6 +163,9 @@ function showProds(prods, category, isFakeData = false) {
             margin: 10px 0;
             border-radius: 5px;
             grid-column: 1/-1;
+            position: sticky;
+            top: 80px;
+            z-index: 100;
         `;
         warningBanner.innerHTML = '⚠️ Demo Mode: Using sample data. Backend server not connected.';
         prodGrid.parentElement.insertBefore(warningBanner, prodGrid);
@@ -185,11 +196,13 @@ async function addToCart(product) {
         user.cart = cart;
         localStorage.setItem('user', JSON.stringify(user));
         try {
-            await fetch('https://stride-1-ait1.onrender.com/api/cart/sync', {
+            const response = await fetch(`${BACKEND_URL}/api/cart/sync`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.userId, cart: cart })
             });
+            if (!response.ok) throw new Error('Sync failed');
+            console.log('Cart synced successfully');
         } catch (err) {
             console.error("Failed to sync cart:", err);
             // Store sync pending
@@ -221,7 +234,7 @@ async function removeFromCart(index) {
         user.cart = cart;
         localStorage.setItem('user', JSON.stringify(user));
         try {
-            await fetch('https://stride-1-ait1.onrender.com/api/cart/sync', {
+            await fetch(`${BACKEND_URL}/api/cart/sync`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.userId, cart: cart })
@@ -286,12 +299,13 @@ async function syncPendingOperations() {
     if (pendingSync && isBackendAvailable) {
         try {
             const syncData = JSON.parse(pendingSync);
-            await fetch('https://stride-1-ait1.onrender.com/api/cart/sync', {
+            await fetch(`${BACKEND_URL}/api/cart/sync`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(syncData)
             });
             localStorage.removeItem('pendingSync');
+            console.log('Pending sync completed');
         } catch (err) {
             console.error("Failed to sync pending operations:", err);
         }
@@ -327,7 +341,7 @@ async function refreshSidebarData() {
     }
 
     try {
-        const res = await fetch(`https://stride-1-ait1.onrender.com/api/user/${user.userId}`);
+        const res = await fetch(`${BACKEND_URL}/api/user/${user.userId}`);
         if (!res.ok) throw new Error('Failed to fetch user data');
         const fullUserData = await res.json();
 
@@ -336,14 +350,14 @@ async function refreshSidebarData() {
 
         if (historyContainer) {
             if (fullUserData.orders && fullUserData.orders.length > 0) {
-                historyContainer.innerHTML = fullUserData.orders.reverse().map(order => `
-                    <div class="history-item">
-                        <div class="history-header">
+                historyContainer.innerHTML = [...fullUserData.orders].reverse().map(order => `
+                    <div class="history-item" style="border-bottom: 1px solid #eee; padding: 10px 0;">
+                        <div class="history-header" style="display: flex; justify-content: space-between;">
                             <span>${new Date(order.date).toLocaleDateString()}</span>
                             <strong>$${order.total.toFixed(2)}</strong>
                         </div>
-                        <div class="history-details">
-                            ${order.items.map(item => `<span>1x ${item.name}</span>`).join('')}
+                        <div class="history-details" style="font-size: 0.8rem; color: #666; margin-top: 5px;">
+                            ${order.items.map(item => `<span>1x ${item.name}</span>`).join(', ')}
                         </div>
                     </div>
                 `).join('');
@@ -398,13 +412,14 @@ async function handleCheckout() {
     }
 
     try {
-        const res = await fetch('https://stride-1-ait1.onrender.com/api/checkout', {
+        const res = await fetch(`${BACKEND_URL}/api/checkout`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: user.userId })
         });
 
         if (res.ok) {
+            const data = await res.json();
             alert("Payment Successful! Order moved to history.");
             cart = [];
             user.cart = [];
@@ -412,35 +427,26 @@ async function handleCheckout() {
             updateUI();
             await refreshSidebarData(); 
         } else {
-            alert("Checkout failed. Please try again.");
+            const error = await res.json();
+            alert(`Checkout failed: ${error.msg}`);
         }
     } catch (err) {
         console.error("Checkout error:", err);
-        alert("Unable to process checkout. Using demo mode.");
-        // Fallback to demo checkout
-        const total = cart.reduce((sum, item) => sum + item.price, 0);
-        const fakeOrder = {
-            id: Date.now(),
-            date: new Date().toISOString(),
-            total: total,
-            items: [...cart]
-        };
-        const demoOrders = JSON.parse(localStorage.getItem('demoOrders')) || [];
-        demoOrders.push(fakeOrder);
-        localStorage.setItem('demoOrders', JSON.stringify(demoOrders));
-        cart = [];
-        user.cart = [];
-        localStorage.setItem('user', JSON.stringify(user));
-        updateUI();
-        await refreshSidebarData();
+        alert("Unable to process checkout. Please try again.");
     }
 }
 
 function logout() {
     localStorage.removeItem('user');
     localStorage.removeItem('localCart');
-    window.location.reload(); 
+    localStorage.removeItem('pendingSync');
+    window.location.href = 'auth.html';
 }
+
+// Make functions global for HTML onclick handlers
+window.removeFromCart = removeFromCart;
+window.handleCheckout = handleCheckout;
+window.logout = logout;
 
 // ==========================================
 // 6. UI INTERACTIONS & FORMS
@@ -500,9 +506,11 @@ if (newsletterForm) {
         const btn = newsletterForm.querySelector('.newsletter-button');
 
         if (!email || !email.includes('@')) {
-            formMessage.className = 'form-message error';
-            formMessage.textContent = "Please enter a valid email address.";
-            setTimeout(() => formMessage.className = 'form-message', 4000);
+            if (formMessage) {
+                formMessage.className = 'form-message error';
+                formMessage.textContent = "Please enter a valid email address.";
+                setTimeout(() => formMessage.className = 'form-message', 4000);
+            }
             return;
         }
 
@@ -513,8 +521,10 @@ if (newsletterForm) {
             if (!isBackendAvailable) {
                 // Simulate subscription in demo mode
                 setTimeout(() => {
-                    formMessage.className = 'form-message success';
-                    formMessage.textContent = "Demo Mode: Subscription recorded!";
+                    if (formMessage) {
+                        formMessage.className = 'form-message success';
+                        formMessage.textContent = "Demo Mode: Subscription recorded!";
+                    }
                     emailInput.value = '';
                     btn.disabled = false;
                     btn.textContent = "Subscribe";
@@ -524,32 +534,37 @@ if (newsletterForm) {
                     subscriptions.push({ email, date: new Date().toISOString() });
                     localStorage.setItem('demoSubscriptions', JSON.stringify(subscriptions));
                     
-                    setTimeout(() => formMessage.className = 'form-message', 4000);
+                    setTimeout(() => {
+                        if (formMessage) formMessage.className = 'form-message';
+                    }, 4000);
                 }, 500);
                 return;
             }
 
-            const res = await fetch('https://stride-1-ait1.onrender.com/api/subscribe', {
+            const res = await fetch(`${BACKEND_URL}/api/subscribe`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
             });
 
             const data = await res.json();
-            formMessage.className = 'form-message';
-
-            if (res.ok) {
-                formMessage.textContent = data.msg;
-                formMessage.classList.add('success');
-                emailInput.value = ''; 
-            } else {
-                formMessage.textContent = data.msg;
-                formMessage.classList.add('error');
+            if (formMessage) {
+                formMessage.className = 'form-message';
+                if (res.ok) {
+                    formMessage.textContent = data.msg;
+                    formMessage.classList.add('success');
+                    emailInput.value = ''; 
+                } else {
+                    formMessage.textContent = data.msg;
+                    formMessage.classList.add('error');
+                }
             }
         } catch (err) {
             console.error("Subscription error:", err);
-            formMessage.textContent = "Could not connect to server. Using demo mode.";
-            formMessage.classList.add('error');
+            if (formMessage) {
+                formMessage.textContent = "Could not connect to server. Using demo mode.";
+                formMessage.classList.add('error');
+            }
             
             // Save subscription locally in demo mode
             const subscriptions = JSON.parse(localStorage.getItem('demoSubscriptions')) || [];
@@ -558,7 +573,9 @@ if (newsletterForm) {
         } finally {
             btn.disabled = false;
             btn.textContent = "Subscribe";
-            setTimeout(() => formMessage.className = 'form-message', 4000);
+            setTimeout(() => {
+                if (formMessage) formMessage.className = 'form-message';
+            }, 4000);
         }
     });
 }
@@ -568,9 +585,10 @@ setInterval(async () => {
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3000);
-        await fetch('https://stride-1-ait1.onrender.com/', { method: 'HEAD', signal: controller.signal });
+        await fetch(`${BACKEND_URL}/health`, { signal: controller.signal });
         clearTimeout(timeoutId);
         if (!isBackendAvailable) {
+            console.log('Backend is back online!');
             isBackendAvailable = true;
             await syncPendingOperations();
             const warning = document.querySelector('.demo-warning');
@@ -578,6 +596,9 @@ setInterval(async () => {
             getProds(); // Refresh products from backend
         }
     } catch (err) {
-        isBackendAvailable = false;
+        if (isBackendAvailable) {
+            console.log('Backend went offline');
+            isBackendAvailable = false;
+        }
     }
 }, 30000); // Check every 30 seconds

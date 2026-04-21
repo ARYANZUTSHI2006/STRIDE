@@ -8,10 +8,9 @@ const port = process.env.PORT || 4000;  // FIXED: Use environment port for Rende
 
 // --- MIDDLEWARE ---
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5500', 'https://stride-1-ait1.onrender.com'], // Allow multiple origins
+    origin: '*',
     credentials: true
 }));
-app.use(express.json());
 
 // --- DATABASE CONNECTION ---
 const mongoURI = "mongodb+srv://aryanzutshi0710_db_user:do1xeNC9Ft8IwDG2@cluster0.f0pirpa.mongodb.net/strideDB";

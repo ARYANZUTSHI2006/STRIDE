@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 async function getProds(category = null) {
     try {
-        let url = 'http://localhost:4000/api/products';
+        let url = 'https://stride-1-ait1.onrender.com/api/products';
         if (category) {
             url += `?category=${encodeURIComponent(category)}`;
         }
@@ -185,7 +185,7 @@ async function addToCart(product) {
         user.cart = cart;
         localStorage.setItem('user', JSON.stringify(user));
         try {
-            await fetch('http://localhost:4000/api/cart/sync', {
+            await fetch('https://stride-1-ait1.onrender.com/api/cart/sync', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.userId, cart: cart })
@@ -221,7 +221,7 @@ async function removeFromCart(index) {
         user.cart = cart;
         localStorage.setItem('user', JSON.stringify(user));
         try {
-            await fetch('http://localhost:4000/api/cart/sync', {
+            await fetch('https://stride-1-ait1.onrender.com/api/cart/sync', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.userId, cart: cart })
@@ -286,7 +286,7 @@ async function syncPendingOperations() {
     if (pendingSync && isBackendAvailable) {
         try {
             const syncData = JSON.parse(pendingSync);
-            await fetch('http://localhost:4000/api/cart/sync', {
+            await fetch('https://stride-1-ait1.onrender.com/api/cart/sync', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(syncData)
@@ -327,7 +327,7 @@ async function refreshSidebarData() {
     }
 
     try {
-        const res = await fetch(`http://localhost:4000/api/user/${user.userId}`);
+        const res = await fetch(`https://stride-1-ait1.onrender.com/api/user/${user.userId}`);
         if (!res.ok) throw new Error('Failed to fetch user data');
         const fullUserData = await res.json();
 
@@ -398,7 +398,7 @@ async function handleCheckout() {
     }
 
     try {
-        const res = await fetch('http://localhost:4000/api/checkout', {
+        const res = await fetch('https://stride-1-ait1.onrender.com/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: user.userId })
@@ -529,7 +529,7 @@ if (newsletterForm) {
                 return;
             }
 
-            const res = await fetch('http://localhost:4000/api/subscribe', {
+            const res = await fetch('https://stride-1-ait1.onrender.com/api/subscribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
@@ -568,7 +568,7 @@ setInterval(async () => {
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3000);
-        await fetch('http://localhost:4000/api/products', { method: 'HEAD', signal: controller.signal });
+        await fetch('https://stride-1-ait1.onrender.com/', { method: 'HEAD', signal: controller.signal });
         clearTimeout(timeoutId);
         if (!isBackendAvailable) {
             isBackendAvailable = true;

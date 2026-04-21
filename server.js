@@ -188,5 +188,5 @@ app.post("/api/checkout", async (req, res) => {
 // START SERVER
 // ==========================================
 app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+    console.log(`Server running on https://stride-1-ait1.onrender.com/${port}`);
 });
